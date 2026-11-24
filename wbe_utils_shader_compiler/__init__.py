@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from ._version import __version__
-from .compiler import DEFAULT_PROFILE, WBEUtilsShaderCompiler, kernel_test_global_name
-from .kernel import Kernel, KernelBinding, KernelParameter, KernelPush, KernelSystemValue
+from .compiler import DEFAULT_PROFILE, ManifestResource, WBEUtilsShaderCompiler, kernel_test_global_name
+from .kernel import Kernel, KernelBinding, KernelParameter, KernelPush, KernelPushData, KernelSystemValue
+from .shader_metadata import ShaderMetadataNormalizer
+from .slang_compiler import SlangCompiler
 
 __all__ = [
     "DEFAULT_PROFILE",
@@ -21,7 +23,11 @@ __all__ = [
     "KernelBinding",
     "KernelParameter",
     "KernelPush",
+    "KernelPushData",
     "KernelSystemValue",
+    "ManifestResource",
+    "ShaderMetadataNormalizer",
+    "SlangCompiler",
     "WBEUtilsShaderCompiler",
     "__version__",
     "kernel_test_global_name",

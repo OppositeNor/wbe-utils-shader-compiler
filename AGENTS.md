@@ -55,8 +55,9 @@ Build outputs land in `build/<build-type>/`, e.g. `build/debug/`.
 
 - `include/wbe_utils_shader_compiler/...` — native headers (mirrors `src/`).
 - `src/...` — native implementation (`.cpp`); `python_module.cpp` holds the pybind11 bindings.
-- `wbe_utils_shader_compiler/` — the Python package: `compiler.py` (validation and generation), `kernel.py` (the
-  reflected kernel types).
+- `wbe_utils_shader_compiler/` — the Python package: `compiler.py` (`WBEUtilsShaderCompiler`: shader resources, kernel
+  validation and generation), `kernel.py` (the reflected kernel types), `slang_compiler.py` (`SlangCompiler`: the slangc
+  and spirv-val runs), `shader_metadata.py` (`ShaderMetadataNormalizer`: the engine metadata format).
 - `test/` — pytest tests; `test/shaders/` holds the Slang sources they reflect.
 
 Header / source naming: `snake_case.hh` / `snake_case.cpp`. Header guards: `WBE_FILE_<UPPER_SNAKE>_HH`. One primary class per file; file name matches the class in `snake_case`.
@@ -141,16 +142,26 @@ Document contracts, ownership, threading, and errors; do not restate signatures.
 
 Run tests with `python build.py test`.
 
+## Shader Resource Contract
+
+- `WBEUtilsShaderCompiler.compile()` owns shader resource validation, variants, output naming, and compilation; hosts such
+  as the engine ACP adapter only resolve `src` relative to `res_dir` and configure the compiler. Keep the resource format
+  and output names in `README.md` in sync.
+- The normalized metadata format is read by the engine's `include/function/render/shader_metadata.hh`; change it only
+  with the engine. Metadata comes from the `WBE_REFLECTION_METADATA=1` compile.
+- Tool failures raise `RuntimeError` carrying the tool's output; do not print.
+
 ## Kernel Contract
 
 - Kernels are concrete Slang functions marked `[wbe::kernel(x, y, z)]`. Every parameter is a system value (an `SV_`
-  semantic), a `[wbe::bind(resource_id, access, desc_type)]` resource, or a `[wbe::push(value)]` four-byte scalar; any
-  other parameter, a generic kernel, or a kernel without exactly one `wbe::kernel` is an error.
+  semantic), a `[wbe::bind(resource_id, access, desc_type)]` resource, a `[wbe::push(value)]` four-byte scalar, or a
+  `[wbe::push_data]` struct (or sized array of one) embedded in the push data as-is; any other parameter, a generic
+  kernel, or a kernel without exactly one `wbe::kernel` is an error.
 - Binding descriptor types and accesses are inferred from the parameter type (`_inferred_binding()` in `compiler.py`);
   explicit attribute values may only match the descriptor type or narrow an RW access. Keep the table in `README.md` in
   sync.
 - The generated engine entry point emits the White Bird Engine push-data contract: one `[vk::push_constant]` struct of
-  `wbe::desc` `DescriptorHandle<T>` fields and `wbe::push_constant` scalars in parameter order, with every access stated.
+  `wbe::desc` `DescriptorHandle<T>` fields, `wbe::push_constant` scalars, and embedded push-data structs in parameter order, with every access stated.
   Do not change it without the engine's pipeline compiler.
 - The generated test entry point names each binding and push global as its parameter without a leading `p_`.
 - The native layer only reflects; validation, inference, and generation belong to the Python package. It returns plain

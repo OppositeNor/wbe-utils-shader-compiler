@@ -52,7 +52,8 @@ public:
      * @brief Reflect one kernel function of a source module.
      * @details The returned dictionary holds the function's `name` and `attributes`, and its `parameters` in declaration
      * order. Each parameter holds `name`, `semantic` (None without a system-value semantic), `type_name` (the full type
-     * name, usable in generated source), `kind`, `resource_shape`, `resource_access`, `scalar_type`, and `attributes`.
+     * name, usable in generated source), `kind`, `resource_shape`, `resource_access`, `scalar_type`, `element_count`,
+     * `element_type_name`, and `element_kind` (0, None, and "none" except for arrays), and `attributes`.
      * Each attribute holds `name` and its `arguments`, defaults included, as Python int, float, or str values.
      * @param p_source_path The source module.
      * @param p_kernel_name The function to reflect; it is checked as a compute entry point, so it must not be generic.

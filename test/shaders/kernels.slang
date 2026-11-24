@@ -63,6 +63,34 @@ void every_binding(uint p_group_index : SV_GroupIndex, uint3 p_group_id : SV_Gro
     p_wrapped[p_group_index].flag = p_frame_slot;
 }
 
+struct LightDescIndices {
+    [wbe::desc("sampled_image", "light_shadow")]
+    DescriptorHandle<Texture2D<float>> shadow;
+    [wbe::push_constant("light_index")]
+    uint index;
+};
+
+struct Lights {
+    LightDescIndices lights[3];
+};
+
+[wbe::kernel(16, 16)]
+void shade(uint3 p_dispatch_thread_id : SV_DispatchThreadID,
+    [wbe::push_data] LightDescIndices p_lights[3],
+    [wbe::push_data] Lights p_more_lights,
+    [wbe::bind("output")] RWTexture2D<float4> p_output) {
+    float total = 0.0;
+    for (uint i = 0; i < 3; ++i) {
+        Texture2D<float> shadow = p_lights[i].shadow;
+        total += shadow.Load(int3(p_dispatch_thread_id.xy, 0)) + float(p_more_lights.lights[i].index);
+    }
+    p_output[p_dispatch_thread_id.xy] = float4(total);
+}
+
+[wbe::kernel(1)]
+void scalar_push_data([wbe::push_data] uint p_count) {
+}
+
 [wbe::kernel(1)]
 void unannotated_parameter(StructuredBuffer<float> p_values) {
 }

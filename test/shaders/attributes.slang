@@ -38,6 +38,10 @@ struct wbe_pushAttribute {
     string value;
 };
 
+[__AttributeUsage(_AttributeTargets.Param)]
+struct wbe_push_dataAttribute {
+};
+
 [__AttributeUsage(_AttributeTargets.Var)]
 struct wbe_descAttribute {
     string desc_type;

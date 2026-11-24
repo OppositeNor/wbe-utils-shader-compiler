@@ -243,6 +243,13 @@ py::dict parameter_dict(slang::VariableLayoutReflection* p_parameter)
     result["resource_shape"] = is_resource ? resource_shape_name(type->getResourceShape()) : "none";
     result["resource_access"] = is_resource ? resource_access_name(type->getResourceAccess()) : "none";
     result["scalar_type"] = kind == slang::TypeReflection::Kind::Scalar ? scalar_type_name(type->getScalarType()) : "none";
+    // Arrays also report their element type, which generated declarations need: `<element type> <name>[<count>]`.
+    const bool is_array = kind == slang::TypeReflection::Kind::Array;
+    slang::TypeReflection* element_type = is_array ? type->getElementType() : nullptr;
+    result["element_count"] = is_array ? type->getElementCount() : 0;
+    result["element_type_name"] =
+        element_type != nullptr ? py::object(py::str(type_full_name(element_type))) : py::object(py::none());
+    result["element_kind"] = element_type != nullptr ? type_kind_name(element_type->getKind()) : "none";
     result["attributes"] = variable_attributes(p_parameter->getVariable());
     return result;
 }

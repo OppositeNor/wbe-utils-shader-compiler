@@ -50,7 +50,21 @@ class KernelPush:
     value: str
 
 
-KernelParameter = KernelSystemValue | KernelBinding | KernelPush
+@dataclass(frozen=True)
+class KernelPushData:
+    """
+    A kernel parameter of a struct type, or an array of one, embedded in the push data as-is with `[wbe::push_data]`.
+
+    The struct declares its own `wbe::desc` handles and `wbe::push_constant` scalars, as hand-written push data does, so
+    helpers that take it work unchanged. `type_name` is the struct; `element_count` is the array length, or 0.
+    """
+
+    name: str
+    type_name: str
+    element_count: int
+
+
+KernelParameter = KernelSystemValue | KernelBinding | KernelPush | KernelPushData
 
 
 @dataclass(frozen=True)
@@ -71,6 +85,10 @@ class Kernel:
     @property
     def pushes(self) -> list[KernelPush]:
         return [parameter for parameter in self.parameters if isinstance(parameter, KernelPush)]
+
+    @property
+    def push_data(self) -> list[KernelPushData]:
+        return [parameter for parameter in self.parameters if isinstance(parameter, KernelPushData)]
 
     @property
     def system_values(self) -> list[KernelSystemValue]:
